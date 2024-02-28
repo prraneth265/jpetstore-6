@@ -1,12 +1,12 @@
-pipeline{
+pipeline {
     agent any
     tools {
         jdk 'jdk17'
         maven 'maven3'
     }
-    stages{
-        stage ('clean Workspace'){
-            steps{
+    stages {
+        stage ('clean Workspace') {
+            steps {
                 cleanWs()
             }
         }
@@ -25,12 +25,18 @@ pipeline{
                 sh 'mvn test'
             }
         }
-        stage ('Build war file'){
-            steps{
+        stage('Stop and Remove Old Container') {
+            steps {
+                sh "docker stop pet1 || true"
+                sh "docker rm pet1 || true"
+            }
+        }
+        stage ('Build war file') {
+            steps {
                 sh 'mvn clean install -DskipTests=true'
             }
         }
-stage ('Build and push to docker hub') {
+        stage ('Build and push to docker hub') {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
@@ -47,6 +53,6 @@ stage ('Build and push to docker hub') {
                     sh "docker run -d --name pet1 -p 8080:8080 prraneth2812/new:${BUILD_NUMBER}"
                 }
             }
-   }
-
-}
+        } 
+    } 
+} 

@@ -1,0 +1,52 @@
+pipeline{
+    agent any
+    tools {
+        jdk 'jdk17'
+        maven 'maven3'
+    }
+    stages{
+        stage ('clean Workspace'){
+            steps{
+                cleanWs()
+            }
+        }
+        stage ('checkout scm') {
+            steps {
+                git branch:'master',url: 'https://github.com/prraneth265/jpetstore-6.git'
+            }
+        }
+        stage ('maven compile') {
+            steps {
+                sh 'mvn clean compile'
+            }
+        }
+        stage ('maven Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        stage ('Build war file'){
+            steps{
+                sh 'mvn clean install -DskipTests=true'
+            }
+        }
+stage ('Build and push to docker hub') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
+                        sh "docker build -t petshop ."
+                        sh "docker tag petshop prraneth2812/new:${BUILD_NUMBER}"
+                        sh "docker push prraneth2812/new:${BUILD_NUMBER}"
+                    }
+                }
+            }
+        }
+        stage ('Deploy to container') {
+            steps {
+                script {
+                    sh "docker run -d --name pet1 -p 8080:8080 prraneth2812/new:${BUILD_NUMBER}"
+                }
+            }
+   }
+
+}

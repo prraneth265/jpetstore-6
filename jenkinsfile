@@ -1,7 +1,7 @@
 pipeline {
     agent any
     triggers {
-        githubPush() // Add trigger for GitHub push events
+        githubPush() 
     }
     tools {
         jdk 'jdk17'
@@ -58,5 +58,26 @@ pipeline {
             }
         } 
     }
+post {
+        success {
+            echo 'Build succeeded!'
+            sh 'echo "Performing post-build actions for success...${BUILD_NUMBER}"'
+        }
+        failure {
+            echo 'Build failed!'
+            sh 'echo "Performing post-build actions for failure...${BUILD_NUMBER}Below attaching target/surefire-reports/"'
+        }
+        unstable {
+            echo 'The build is unstable! Sending notifications...if the build got success but their is some test failed'
+        }
+        
+        aborted {
+            echo 'The build was aborted! Sending notifications...'
+        }
+        
+        always {
+            echo 'Build finished. Performing cleanup...'
+        }
 
+    }
 } 

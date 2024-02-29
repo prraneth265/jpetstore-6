@@ -58,12 +58,5 @@ pipeline {
             }
         } 
     }
-    post {
-        success {
-               sh  "echo 'The build is Sucess ${BUILD_NUMBER}' "
-        }
-        failure {
-                 sh "echo 'The build is failure ${BUILD_NUMBER},Below attaching surefire-reports/' "
-        }
-    }
+
 } 

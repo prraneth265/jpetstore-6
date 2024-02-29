@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    triggers {
+        githubPush() // Add trigger for GitHub push events
+    }
     tools {
         jdk 'jdk17'
         maven 'maven3'

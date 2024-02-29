@@ -60,17 +60,10 @@ pipeline {
     }
     post {
         success {
-            // This block will only run if the build succeeds
-            mail to: 'praneeth8622@gmail.com',
-                 subject: "Build Success: ${currentBuild.fullDisplayName}",
-                 body: "Congratulations! Your artifact has been deployed in the container."
+               sh  "echo 'The build is Sucess ${BUILD_NUMBER}' "
         }
         failure {
-            // This block will only run if the build fails
-            mail to: 'praneeth8622@gmail.com',
-                 subject: "Build Failure: ${currentBuild.fullDisplayName}",
-                 body: "Oh no! Your build failed. Please check the logs for more information.",
-                 attachmentsPattern: '**/target/surefire-reports/*.txt' // Attach Maven test reports
+                 sh "echo 'The build is failure ${BUILD_NUMBER},Below attaching surefire-reports/' "
         }
     }
 } 

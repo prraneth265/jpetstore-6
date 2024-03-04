@@ -8,38 +8,44 @@ pipeline {
         maven 'maven3'
     }
     stages {
-        stage ('clean Workspace') {
+        stage ('Clean Workspace') {
             steps {
                 cleanWs()
             }
         }
-        stage ('checkout scm') {
+        stage ('Checkout SCM') {
             steps {
-                git branch:'master',url: 'https://github.com/prraneth265/jpetstore-6.git'
+                git branch:'master', url: 'https://github.com/prraneth265/jpetstore-6.git'
             }
         }
-        stage ('maven compile') {
+        stage ('Maven Compile') {
             steps {
                 sh 'mvn clean compile'
             }
         }
-        stage ('maven Test') {
+        stage ('Maven Test') {
             steps {
                 sh 'mvn test'
             }
         }
-        stage('Stop and Remove Old Container') {
+        stage ('Stop and Remove Old Container') {
             steps {
                 sh "docker stop pet1 || true"
                 sh "docker rm pet1 || true"
             }
         }
-        stage ('Build war file') {
+        stage ('Build WAR File') {
             steps {
                 sh 'mvn clean install -DskipTests=true'
             }
+            post {
+                success {
+                    echo 'Now Archiving...'
+                    archiveArtifacts artifacts: '**/target/*.war'
+                }
+            }
         }
-        stage ('Build and push to docker hub') {
+        stage ('Build and Push to Docker Hub') {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
@@ -50,7 +56,7 @@ pipeline {
                 }
             }
         }
-        stage ('Deploy to container') {
+        stage ('Deploy to Container') {
             steps {
                 script {
                     sh "docker run -d --name pet1 -p 8080:8080 prraneth2812/new:${BUILD_NUMBER}"
@@ -58,26 +64,23 @@ pipeline {
             }
         } 
     }
-post {
+    post {
         success {
             echo 'Build succeeded!'
             sh 'echo "Performing post-build actions for success...${BUILD_NUMBER}"'
         }
         failure {
             echo 'Build failed!'
-            sh 'echo "Performing post-build actions for failure...${BUILD_NUMBER}Below attaching target/surefire-reports/"'
+            sh 'echo "Performing post-build actions for failure...${BUILD_NUMBER} "'
         }
         unstable {
-            echo 'The build is unstable! Sending notifications...if the build got success but their is some test failed'
+            echo 'The build is unstable! Sending notifications...if the build got success but there are some error pls go through it'
         }
-        
         aborted {
             echo 'The build was aborted! Sending notifications...'
         }
-        
         always {
             echo 'Build finished. Performing cleanup...'
         }
-
     }
-} 
+}

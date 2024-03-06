@@ -318,6 +318,7 @@
 
     <!-- Reproducible Builds -->
     <project.build.outputTimestamp>1670877034</project.build.outputTimestamp>
+    <sonar.projectKey>project1</sonar.projectKey>
   </properties>
 
   <profiles>

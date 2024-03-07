@@ -3,6 +3,10 @@ pipeline {
     triggers {
         githubPush() 
     }
+    environment {
+        AWS_DEFAULT_REGION = 'us-east-1' 
+        AWS_S3_BUCKET = 'artifactstore'
+    }
     tools {
         jdk 'jdk17'
         maven 'maven3'
@@ -55,7 +59,11 @@ pipeline {
             }
             post {
                 success {
-                    echo 'Now Archiving...'
+                    script {
+                        withAWS(region: AWS_DEFAULT_REGION, credentials: 'aws') {
+                            sh "aws s3 cp target/ s3://${AWS_S3_BUCKET}/target --recursive"
+                        }
+                    }
                 }
             }
         }

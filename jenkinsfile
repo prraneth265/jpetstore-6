@@ -6,6 +6,7 @@ pipeline {
     environment {
         AWS_DEFAULT_REGION = 'us-east-1' 
         AWS_S3_BUCKET = 'artifactstore'
+        SCANNER_HOME=tool 'sonar-scanner'
     }
     tools {
         jdk 'jdk17'
@@ -63,6 +64,28 @@ pipeline {
                         withAWS(region: AWS_DEFAULT_REGION, credentials: 'aws') {
                             sh "aws s3 cp target/ s3://${AWS_S3_BUCKET}/target --recursive"
                         }
+                    }
+                }
+            }
+        }
+        stage("Sonarqube Analysis "){
+            steps{
+                withSonarQubeEnv('sonar-server') {
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Petshop \
+                    -Dsonar.java.binaries=. \
+                    -Dsonar.projectKey=Petshop '''
+                }
+            }
+        }
+        stage("Quality Gate") {
+            steps {
+                script {
+                    try {
+                        waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
+                        
+                    } catch (Exception e) {
+                        currentBuild.result = 'FAILURE'
+                        echo "Quality gate check failed: ${e.message}"
                     }
                 }
             }
